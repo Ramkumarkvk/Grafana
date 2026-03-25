@@ -1,0 +1,45 @@
+logging {
+  level = "info"
+}
+
+prometheus.exporter.unix "node" {
+  include_exporter_metrics = true
+
+  disable_collectors = [
+    "mdadm",
+    "zfs",
+    "btrfs",
+  ]
+}
+
+prometheus.exporter.process "procs" {
+  track_threads       = false
+  remove_empty_groups = true
+  recheck_on_scrape   = true
+
+  matcher {
+    name    = "{{ .Comm }}"
+    cmdline = [".+"]
+  }
+}
+
+prometheus.scrape "node" {
+  targets    = prometheus.exporter.unix.node.targets
+  forward_to = [prometheus.remote_write.gem.receiver]
+}
+
+prometheus.scrape "procs" {
+  targets    = prometheus.exporter.process.procs.targets
+  forward_to = [prometheus.remote_write.gem.receiver]
+}
+
+prometheus.remote_write "gem" {
+  endpoint {
+    url = env("GEM_URL")
+
+    basic_auth {
+      username = env("GEM_USERNAME")
+      password = env("GEM_TOKEN")
+    }
+  }
+}
