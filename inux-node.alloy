@@ -2,7 +2,9 @@ logging {
   level = "info"
 }
 
-prometheus.exporter.unix "node" {
+prometheus.exporter.self "metamonitoring" {}
+
+prometheus.exporter.unix "local_system" {
   include_exporter_metrics = true
 
   disable_collectors = [
@@ -12,7 +14,7 @@ prometheus.exporter.unix "node" {
   ]
 }
 
-prometheus.exporter.process "procs" {
+prometheus.exporter.process "top_processes" {
   track_threads       = false
   remove_empty_groups = true
   recheck_on_scrape   = true
@@ -23,13 +25,18 @@ prometheus.exporter.process "procs" {
   }
 }
 
-prometheus.scrape "node" {
-  targets    = prometheus.exporter.unix.node.targets
+prometheus.scrape "local_system" {
+  targets    = prometheus.exporter.unix.local_system.targets
   forward_to = [prometheus.remote_write.gem.receiver]
 }
 
-prometheus.scrape "procs" {
-  targets    = prometheus.exporter.process.procs.targets
+prometheus.scrape "processes" {
+  targets    = prometheus.exporter.process.top_processes.targets
+  forward_to = [prometheus.remote_write.gem.receiver]
+}
+
+prometheus.scrape "alloy_self" {
+  targets    = prometheus.exporter.self.metamonitoring.targets
   forward_to = [prometheus.remote_write.gem.receiver]
 }
 
