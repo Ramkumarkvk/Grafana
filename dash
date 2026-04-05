@@ -44,8 +44,7 @@
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=~\"$job\",instance=~\"$instance\",mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "{{instance}}",
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"node_exporter\",instance=~\"$instance\",mode=\"idle\"}[5m])) * 100)",
           "refId": "A"
         }
       ],
@@ -70,7 +69,7 @@
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\",instance=~\"$instance\"}))",
+          "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=\"node_exporter\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node_exporter\",instance=~\"$instance\"}))",
           "refId": "A"
         }
       ],
@@ -95,7 +94,7 @@
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "sum(rate(node_network_receive_bytes_total{job=~\"$job\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"node_exporter\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
           "refId": "A"
         }
       ],
@@ -120,7 +119,7 @@
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "sum(rate(node_network_transmit_bytes_total{job=~\"$job\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"node_exporter\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
           "refId": "A"
         }
       ],
@@ -139,13 +138,13 @@
     },
     {
       "type": "timeseries",
-      "title": "CPU Breakdown % (user/system/iowait)",
+      "title": "CPU Breakdown %",
       "id": 5,
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 4 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "avg by (mode) (rate(node_cpu_seconds_total{job=~\"$job\",instance=~\"$instance\",mode=~\"user|system|iowait\"}[5m])) * 100",
+          "expr": "avg by (mode) (rate(node_cpu_seconds_total{job=\"node_exporter\",instance=~\"$instance\",mode=~\"user|system|iowait\"}[5m])) * 100",
           "legendFormat": "{{mode}}",
           "refId": "A"
         }
@@ -163,11 +162,11 @@
       "type": "timeseries",
       "title": "Memory Used",
       "id": 6,
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 4 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "node_memory_MemTotal_bytes{job=~\"$job\",instance=~\"$instance\"} - node_memory_MemAvailable_bytes{job=~\"$job\",instance=~\"$instance\"}",
+          "expr": "node_memory_MemTotal_bytes{job=\"node_exporter\",instance=~\"$instance\"} - node_memory_MemAvailable_bytes{job=\"node_exporter\",instance=~\"$instance\"}",
           "legendFormat": "used",
           "refId": "A"
         }
@@ -185,14 +184,13 @@
       "type": "table",
       "title": "Disk Usage % (selected mounts)",
       "id": 7,
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 11 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\",instance=~\"$instance\",mountpoint=~\"$mount_regex\",fstype!~\"tmpfs|overlay|squashfs|nsfs|proc|sysfs|devtmpfs\"} / node_filesystem_size_bytes{job=~\"$job\",instance=~\"$instance\",mountpoint=~\"$mount_regex\",fstype!~\"tmpfs|overlay|squashfs|nsfs|proc|sysfs|devtmpfs\"}))",
+          "expr": "100 * (1 - (node_filesystem_avail_bytes{job=\"node_exporter\",instance=~\"$instance\",mountpoint=~\"$mount_regex\",fstype!~\"tmpfs|overlay|squashfs|nsfs|proc|sysfs|devtmpfs\"} / node_filesystem_size_bytes{job=\"node_exporter\",instance=~\"$instance\",mountpoint=~\"$mount_regex\",fstype!~\"tmpfs|overlay|squashfs|nsfs|proc|sysfs|devtmpfs\"}))",
           "format": "table",
           "instant": true,
-          "legendFormat": "{{mountpoint}}",
           "refId": "A"
         }
       ],
@@ -202,7 +200,10 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true },
-            "renameByName": { "Value": "usage_percent", "mountpoint": "mountpoint" }
+            "renameByName": {
+              "mountpoint": "Mount Point",
+              "Value": "Used %"
+            }
           }
         }
       ],
@@ -214,19 +215,19 @@
     },
     {
       "type": "timeseries",
-      "title": "Network Total (Rx/Tx)",
+      "title": "Network Traffic",
       "id": 8,
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 11 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "sum(rate(node_network_receive_bytes_total{job=~\"$job\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
-          "legendFormat": "rx",
+          "expr": "sum by (device) (rate(node_network_receive_bytes_total{job=\"node_exporter\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+          "legendFormat": "{{device}} - Received",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(node_network_transmit_bytes_total{job=~\"$job\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
-          "legendFormat": "tx",
+          "expr": "sum by (device) (rate(node_network_transmit_bytes_total{job=\"node_exporter\",instance=~\"$instance\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+          "legendFormat": "{{device}} - Transmitted",
           "refId": "B"
         }
       ],
@@ -243,14 +244,13 @@
       "type": "table",
       "title": "Top 5 Processes by CPU",
       "id": 9,
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "topk(5, rate(namedprocess_namegroup_cpu_seconds_total{instance=~\"$instance\"}[5m]))",
+          "expr": "topk(5, sum by (groupname, mode, instance) (rate(namedprocess_namegroup_cpu_seconds_total{job=\"process_exporter\",instance=~\"$instance\"}[5m])) * 100)",
           "format": "table",
           "instant": true,
-          "legendFormat": "{{groupname}}",
           "refId": "A"
         }
       ],
@@ -260,12 +260,17 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true },
-            "renameByName": { "groupname": "process", "Value": "cpu_per_sec" }
+            "renameByName": {
+              "groupname": "Process Name",
+              "instance": "Server",
+              "mode": "mode",
+              "Value": "CPU %"
+            }
           }
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "short", "decimals": 3 },
+        "defaults": { "unit": "percent", "decimals": 2 },
         "overrides": []
       },
       "options": { "showHeader": true }
@@ -274,14 +279,13 @@
       "type": "table",
       "title": "Top 5 Processes by Memory",
       "id": 10,
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
-          "expr": "topk(5, namedprocess_namegroup_memory_bytes{instance=~\"$instance\"})",
+          "expr": "topk(5, max by (groupname, instance) (namedprocess_namegroup_memory_bytes{job=\"process_exporter\",instance=~\"$instance\"}))",
           "format": "table",
           "instant": true,
-          "legendFormat": "{{groupname}}",
           "refId": "A"
         }
       ],
@@ -291,7 +295,11 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true },
-            "renameByName": { "groupname": "process", "Value": "memory_bytes" }
+            "renameByName": {
+              "groupname": "Process Name",
+              "instance": "Server",
+              "Value": "Memory"
+            }
           }
         }
       ],
@@ -309,29 +317,16 @@
   "templating": {
     "list": [
       {
-        "name": "job",
-        "type": "query",
-        "label": "Job",
-        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-        "refresh": 1,
-        "query": "label_values(node_cpu_seconds_total, job)",
-        "definition": "label_values(node_cpu_seconds_total, job)",
-        "current": { "selected": true, "text": "integrations/unix", "value": "integrations/unix" },
-        "options": [],
-        "includeAll": false,
-        "multi": false
-      },
-      {
         "name": "instance",
         "type": "query",
-        "label": "Host",
+        "label": "Instance",
         "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
         "refresh": 1,
-        "query": "label_values(node_cpu_seconds_total{job=~\"$job\"}, instance)",
-        "definition": "label_values(node_cpu_seconds_total{job=~\"$job\"}, instance)",
+        "query": "label_values(node_cpu_seconds_total{job=\"node_exporter\"}, instance)",
+        "definition": "label_values(node_cpu_seconds_total{job=\"node_exporter\"}, instance)",
         "current": { "selected": false, "text": "", "value": "" },
         "options": [],
-        "includeAll": true,
+        "includeAll": false,
         "multi": false
       },
       {
@@ -357,8 +352,8 @@
   "time": { "from": "now-24h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Linux VM Metrics",
-  "uid": "linux-vm-metrics-aqua",
-  "version": 2,
+  "title": "Linux VM Metrics - Clean",
+  "uid": "linux-vm-metrics-clean-aqua",
+  "version": 1,
   "weekStart": ""
 }
